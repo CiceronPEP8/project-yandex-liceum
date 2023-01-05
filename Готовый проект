@@ -1,0 +1,103 @@
+import pygame
+import random
+
+pygame.init()  # инициализируем экран, задаем цвета, шрифты, скорость и размер змейки
+black = (0, 0, 0)
+white = (255, 255, 255)
+yellow = (255, 255, 0)
+red = (255, 0, 0)
+purple = (153, 0, 255)
+window_width = 800
+window_height = 800
+display = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption('project dimona')
+shrift_end = pygame.font.SysFont("times", 25)
+shrift = pygame.font.SysFont("times", 18)
+clock = pygame.time.Clock()
+speed = 16
+size_snake = 10
+
+
+def snake(size_snake, my_list):  # рисуем змейку
+    for el in my_list:
+        pygame.draw.rect(display, red, [el[0], el[1], size_snake, size_snake])
+
+
+def score(score):  # функция отображения рекорда игрока
+    res = shrift.render("Your Score: " + str(score), True, purple)
+    display.blit(res, [0, 0])
+
+
+def end(m, color):  # выводим последнее сообщение
+    massenge = shrift_end.render(m, True, color)
+    display.blit(massenge, [window_width / 8, window_height / 3.5])
+
+
+def coordinator():
+    end_game = False
+    closer = False
+    x = window_width * 0.5  # координаты
+    y = window_height * 0.5
+    x1 = 0  # координаты смещения
+    y1 = 0
+    my_List = []
+    long = 1
+    x_of_food = round(random.randrange(0, window_width - size_snake) / 10) * 10  # координаты еды
+    y_of_food = round(random.randrange(0, window_height - size_snake) / 10) * 10
+    while not end_game:
+        while closer == True:
+            display.fill(black)
+            end("Вы проиграли! Нажмите E-играть снова или ESCAPE-выйти", purple)  # сообщение завершения игры
+            score(long - 1)  # рекорд = длина змейки -1, т.к змейка изначально имеет размер 1
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:  # кнопочка выхода
+                        end_game = True
+                        closer = False
+                    if event.key == pygame.K_e:  # кнопка начать заново
+                        coordinator()
+        for event in pygame.event.get():  # передвижение змейки
+            if event.type == pygame.QUIT:
+                end_game = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_a:
+                    x1 = -size_snake
+                    y1 = 0
+                elif event.key == pygame.K_d:
+                    x1 = size_snake
+                    y1 = 0
+                elif event.key == pygame.K_w:
+                    y1 = -size_snake
+                    x1 = 0
+                elif event.key == pygame.K_s:
+                    y1 = size_snake
+                    x1 = 0
+        if x < 0 or x >= window_width or y < 0 or y >= window_height:  # конец игры при столкновении с границей
+            closer = True
+        x += x1  # меняем координаты, после чего обновляем экран
+        y += y1
+        display.fill(black)
+        pygame.draw.rect(display, yellow, [x_of_food, y_of_food, size_snake, size_snake])
+        snake_roof = []  # голова змейки
+        snake_roof.append(x)
+        snake_roof.append(y)
+        my_List.append(snake_roof)  # добавляем в список размеров змейки новое значение
+        if len(my_List) > long:
+            del my_List[0]
+        for elem in my_List[:-1]:
+            if elem == snake_roof:
+                closer = True
+        snake(size_snake, my_List)
+        score(long - 1)
+        pygame.display.update()
+        if x == x_of_food and y == y_of_food:  # учим змейку кушать
+            x_of_food = round(random.randrange(0, window_width - size_snake) * 0.1) * 10
+            y_of_food = round(random.randrange(0, window_height - size_snake) * 0.1) * 10
+            long += 1
+        clock.tick(speed)
+    pygame.quit()
+    quit()
+
+
+coordinator()
